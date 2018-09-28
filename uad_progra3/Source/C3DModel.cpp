@@ -10,6 +10,7 @@ using namespace std;
 
 #include "../Include/C3DModel.h"
 #include "../Include/C3DModel_Obj.h"
+#include "../Include/C3DSergio_Model_Obj.h"
 #include "../Include/C3DModel_STL.h"
 #include "../Include/C3DModel_3DS.h"
 
@@ -42,53 +43,69 @@ C3DModel::~C3DModel()
 {
 	cout << "Destructor: C3DModel()" << endl;
 	reset();
+	resetobjs();
+	m_objetos.clear();
 }
 
 /*
 */
 void C3DModel::reset()
 {
-	if (m_vertexIndices != NULL)
+	/*if (m_vertexIndices != NULL)
 	{
 		cout << "deleting vertex indices" << endl;
 		delete[] m_vertexIndices;
 		m_vertexIndices = NULL;
+		delete[]m_obj.s_vertexIndices;
+		//m_obj.m_vertexIndices = NULL;
 	}
 	if (m_normalIndices != NULL)
 	{
 		cout << "deleting normal indices" << endl;
 		delete[] m_normalIndices;
 		m_normalIndices = NULL;
+		delete[] m_obj.s_normalIndices;
+		//m_obj.m_normalIndices = NULL;
 	}
 	if (m_UVindices != NULL)
 	{
 		cout << "deleting UV indices" << endl;
 		delete[] m_UVindices;
 		m_UVindices = NULL;
+		//delete[] m_obj.s_UVindices;
+		//m_obj.m_UVindices = NULL;
 	}
 	if (m_verticesRaw != NULL)
 	{
 		cout << "deleting vertices (float)" << endl;
 		delete[] m_verticesRaw;
-		m_verticesRaw = NULL;
+		//m_verticesRaw = NULL;
+		//delete[] m_obj.s_verticesRaw;
+		//m_obj.m_verticesRaw = NULL;
 	}
 	if (m_normalsRaw != NULL)
 	{
 		cout << "deleting normals (float)" << endl;
 		delete[] m_normalsRaw;
 		m_normalsRaw = NULL;
+		delete[] m_obj.s_normalsRaw;
+		//m_obj.s_normalsRaw = NULL;
 	}
 	if (m_uvCoordsRaw != NULL)
 	{
 		cout << "deleting uvCoords (float)" << endl;
 		delete[] m_uvCoordsRaw;
 		m_uvCoordsRaw = NULL;
+		delete[] m_obj.s_uvCoordsRaw;
+		//m_obj.s_uvCoordsRaw = NULL;
 	}
 	if (m_modelTextureFilename != nullptr)
 	{
 		delete[] m_modelTextureFilename;
 		m_modelTextureFilename = nullptr;
-	}
+		delete[] m_obj.s_modelTextureFilename;
+		//m_obj.s_modelTextureFilename = nullptr;
+	}*/
 
 	m_numVertices = 0;
 	m_numNormals = 0;
@@ -108,10 +125,9 @@ void C3DModel::reset()
 /*
  Static method ("abstract method" pattern) that checks the filename and returns a new object of the appropriate subclass
 */
-C3DModel* C3DModel::load(const char * const filename)
+C3DModel* C3DModel::load(const char * const filename, bool &isObj)
 {
 	C3DModel *newModel = nullptr;
-
 	// Check the file type
 	// We could use the "PathFindExtension" function but that needs the shlwapi.lib, instead we'll keep it simple and avoid more dependencies
 	std::string stdFilename(filename);
@@ -130,8 +146,10 @@ C3DModel* C3DModel::load(const char * const filename)
 		if (!fileExtension.compare("obj"))
 		{
 			cout << "Loading OBJ model..." << endl;
-			newModel = new C3DModel_Obj();
+			//newModel = new C3DModel_Obj();
+			newModel = new C3DSergio_Model_Obj();
 			newModel->loadFromFile(filename);
+			isObj = true;
 		}
 		else if (!fileExtension.compare("3ds"))
 		{
@@ -168,4 +186,81 @@ void C3DModel::computeFaceNormals()
 
 	// After calculating the normals, set the flag to true
 	// m_modelHasNormals = true;
+}
+
+void C3DModel::resetobjs()
+{
+	for (int i = 0; i < m_objetos.size(); i++)
+	{
+
+		/*if (m_objetos[i].s_vertexIndices!= NULL)
+		{
+			cout << "deleting vertex indices" << endl;
+			delete[] m_vertexIndices;
+			m_vertexIndices = NULL;
+			delete[]m_objetos[i].s_vertexIndices;
+			//m_objetos[i].s_vertexIndices = NULL;
+		}
+		if (m_objetos[i].s_normalIndices != NULL)
+		{
+			cout << "deleting normal indices" << endl;
+			delete[] m_normalIndices;
+			m_normalIndices = NULL;
+			delete[] m_objetos[i].s_normalIndices;
+			//m_objetos[i].s_normalIndices = NULL;
+		}
+		if (m_objetos[i].s_UVindices != NULL)
+		{
+			cout << "deleting UV indices" << endl;
+			delete[] m_UVindices;
+			m_UVindices = NULL;
+			delete[] m_objetos[i].s_UVindices;
+			//m_objetos[i].s_UVindices = NULL;
+		}
+		if (m_objetos[i].s_verticesRaw != NULL)
+		{
+			cout << "deleting vertices (float)" << endl;
+			delete[] m_verticesRaw;
+			m_verticesRaw = NULL;
+			delete[] m_objetos[i].s_verticesRaw;
+			//m_objetos[i].s_verticesRaw = NULL;
+		}
+		if (m_objetos[i].s_normalsRaw != NULL)
+		{
+			cout << "deleting normals (float)" << endl;
+			delete[] m_normalsRaw;
+			m_normalsRaw = NULL;
+			delete[] m_objetos[i].s_normalsRaw;
+			//m_objetos[i].s_normalsRaw = NULL;
+		}
+		if (m_objetos[i].s_uvCoordsRaw != NULL)
+		{
+			cout << "deleting uvCoords (float)" << endl;
+			delete[] m_uvCoordsRaw;
+			m_uvCoordsRaw = NULL;
+			delete[] m_objetos[i].s_uvCoordsRaw;
+			//m_objetos[i].s_uvCoordsRaw = NULL;
+		}
+		if (m_objetos[i].s_modelTextureFilename != nullptr)
+		{
+			delete[] m_modelTextureFilename;
+			m_modelTextureFilename = nullptr;
+			delete[] m_objetos[i].s_modelTextureFilename;
+			m_objetos[i].s_modelTextureFilename = nullptr;
+		}*/
+	}
+
+	m_numVertices = 0;
+	m_numNormals = 0;
+	m_numUVCoords = 0;
+	m_numFaces = 0;
+
+	m_Initialized = false;
+
+	m_graphicsMemoryObjectId = 0;
+	m_shaderProgramId = 0;
+	m_textureObjectId = 0;
+	m_modelHasNormals = false;
+	m_modelHasUVs = false;
+	m_modelHasTextures = false;
 }

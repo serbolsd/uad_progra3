@@ -606,8 +606,23 @@ bool COpenGLRenderer::generateRenderGeometry(
 			|| ((vIndices[1] * 3) + 2) >= (numVertices * 3)
 			|| ((vIndices[2] * 3) + 2) >= (numVertices * 3))
 		{
-			cout << "COpenGLRenderer::generateRenderGeometry() : Invalid vertex indices" << endl;
-			return false;
+			if (
+				(((uIndices[0] * 2) + 1) == 0
+					&& ((uIndices[1] * 2) + 1) == 0
+					&& ((uIndices[2] * 2) + 1) == 0) &&
+					(((vIndices[0] * 3) + 2) == 0
+						&& ((vIndices[1] * 3) + 2) == 0
+						&& ((vIndices[2] * 3) + 2) == 0))
+			{
+				cout << "COpenGLRenderer::generateRenderGeometry() : Invalid normal indices" << endl;
+				break;
+			}
+			else
+			{
+				cout << "COpenGLRenderer::generateRenderGeometry() : Invalid vertex indices" << endl;
+				return false;
+
+			}
 		}
 
 		if (((nIndices[0] * 3) + 2) >= (numNormals * 3)
@@ -624,6 +639,21 @@ bool COpenGLRenderer::generateRenderGeometry(
 		{
 			cout << "COpenGLRenderer::generateRenderGeometry() : Invalid UV coord indices" << endl;
 			return false;
+		}
+
+
+		if ((((nIndices[0] * 3)) ==		0
+			&& ((nIndices[1] * 3)) ==	0
+			&& ((nIndices[2] * 3)) ==	0)&&
+			(((uIndices[0] * 2)) ==		0
+			&& ((uIndices[1] * 2)) ==	0
+			&& ((uIndices[2] * 2)) ==	0)&&
+			(((vIndices[0] * 3)) ==		0
+			&& ((vIndices[1] * 3)) ==	0
+			&& ((vIndices[2] * 3)) ==	0))
+		{
+			cout << "COpenGLRenderer::generateRenderGeometry() : Invalid normal indices" << endl;
+			break;
 		}
 
 		// For each vertex, copy its 3 components, finalVertices is an array of floats

@@ -100,10 +100,10 @@ void Cgeomretria ::initialize()
 
 	if (m_shaderID > 0)
 	{
-		//createPiramid();
+		createPiramid();
 		//createDona();
-		//createEsfera();
-		//createCubo();
+		createEsfera();
+		createCubo();
 		createTorus();
 	}
 }

@@ -400,11 +400,13 @@ bool CAppParcial2::load3DModel(const char * const filename)
 	char *vertexShaderToLoad = VERTEX_SHADER_3D_OBJECT;
 	char *fragmentShaderToLoad = FRAGMENT_SHADER_3D_OBJECT;
 
+	bool isObj = false;
+
 	// Unload any current 3D model
 	unloadCurrent3DModel();
 	
 	// Create new 3D object
-	m_p3DModel = C3DModel::load(filename);
+	m_p3DModel = C3DModel::load(filename,isObj);
 
 	if (m_p3DModel == nullptr)
 	{
@@ -419,70 +421,186 @@ bool CAppParcial2::load3DModel(const char * const filename)
 	{
 		// By default, shaders to be loaded are for non-textured objects, but if the model has a valid texture filename and UVs, 
 		// load the appropriate shader instead 
-		if (m_p3DModel->hasUVs() && m_p3DModel->hasTextures())
+		if (isObj)//si es obj lo divido por objetos
 		{
-			// Switch shaders to textured object ones
-			vertexShaderToLoad = VERTEX_SHADER_TEXTURED_3D_OBJECT;
-			fragmentShaderToLoad = FRAGMENT_SHADER_TEXTURED_3D_OBJECT;
-
-			unsigned int newTextureID = 0;
-
-			// LOAD TEXTURE AND ALSO CREATE TEXTURE OBJECT
-			if (loadTexture(m_p3DModel->getTextureFilename(), &newTextureID))
+			for (int i = 0; i < m_p3DModel->m_objetos.size(); i++)
 			{
-				m_p3DModel->setTextureObjectId(newTextureID);
+				std::wstring wresourceFilenameVS;
+				std::wstring wresourceFilenameFS;
+				std::string resourceFilenameVS;
+				std::string resourceFilenameFS;
+				m_p3DModel->m_modelHasUVs = m_p3DModel->m_objetos[i].s_modelHasUVs;
+				m_p3DModel->m_modelHasTextures = m_p3DModel->m_objetos[i].s_modelHasTextures;
+				m_p3DModel->m_modelHasNormals = m_p3DModel->m_objetos[i].s_modelHasNormals;
+				m_p3DModel->m_modelTextureFilename = m_p3DModel->m_objetos[i].s_modelTextureFilename;
+
+				if (m_p3DModel->hasUVs() && m_p3DModel->hasTextures())
+				{
+					// Switch shaders to textured object ones
+					vertexShaderToLoad = VERTEX_SHADER_TEXTURED_3D_OBJECT;
+					fragmentShaderToLoad = FRAGMENT_SHADER_TEXTURED_3D_OBJECT;
+
+					unsigned int newTextureID = 0;
+
+					// LOAD TEXTURE AND ALSO CREATE TEXTURE OBJECT
+					if (loadTexture(m_p3DModel->getTextureFilename(), &newTextureID))
+					{
+						m_p3DModel->setTextureObjectId(newTextureID);
+					}
+					else
+					{
+						return false;
+					}
+				}
+
+				// TO-DO (IMPROVMENT): LOAD ALL POSSIBLE SHADERS FOR 3D OBJECT UP FRONT AND THEN JUST SWITCH THE ACTIVE ONE
+
+				// If resource files cannot be found, return
+				if (!CWideStringHelper::GetResourceFullPath(vertexShaderToLoad, wresourceFilenameVS, resourceFilenameVS) ||
+					!CWideStringHelper::GetResourceFullPath(fragmentShaderToLoad, wresourceFilenameFS, resourceFilenameFS))
+				{
+					cout << "ERROR: Unable to find one or more resources: " << endl;
+					cout << "  " << vertexShaderToLoad << endl;
+					cout << "  " << fragmentShaderToLoad << endl;
+
+					return false;
+				}
+
+				// Create a shader program for this object
+				getOpenGLRenderer()->createShaderProgram(
+					&m_currentModelShaderId,
+					resourceFilenameVS.c_str(),
+					resourceFilenameFS.c_str());
+
+				// Save the shader program ID in the model as well
+				m_p3DModel->setShaderProgramId(m_currentModelShaderId);
+				//m_p3DModel->setGraphicsMemoryObjectId(i); //intento de poder cambiar el id de grafica de memoria
+
+
+				// Allocate graphics memory for object
+				/*loaded = getOpenGLRenderer()->allocateGraphicsMemoryForObject(
+					m_p3DModel->getShaderProgramId(),
+					m_p3DModel->getGraphicsMemoryObjectId(),
+					m_p3DModel->m_objetos[i].s_verticesRaw,
+					m_p3DModel->getNumVertices(),
+					m_p3DModel->m_objetos[i].s_normalsRaw,
+					m_p3DModel->getNumNormals(),
+					m_p3DModel->m_objetos[i].s_uvCoordsRaw,
+					m_p3DModel->getNumUVCoords(),
+					m_p3DModel->m_objetos[i].s_vertexIndices,
+					m_p3DModel->getNumFaces(),
+					m_p3DModel->m_objetos[i].s_normalIndices,
+					((m_p3DModel) ? (m_p3DModel->getNumFaces()) : 0),
+					m_p3DModel->m_objetos[i].s_UVindices,
+					((m_p3DModel) ? (m_p3DModel->getNumFaces()) : 0)
+				);
+				loaded = getOpenGLRenderer()->allocateGraphicsMemoryForObject(
+					m_p3DModel->getShaderProgramId(),
+					m_p3DModel->getGraphicsMemoryObjectId(),
+					m_p3DModel->m_objetos[i].s_verticesRaw,  // vertices
+					m_p3DModel->getNumVertices(),		// Nunmero de vertices de la figura
+					m_p3DModel->m_objetos[i].s_normalsRaw,		// Numero de normales
+					m_p3DModel->getNumNormals(),
+					m_p3DModel->m_objetos[i].s_uvCoordsRaw,	// Num Uv coords
+					m_p3DModel->getNumUVCoords(),
+					m_p3DModel->m_objetos[i].s_vertexIndices,
+					m_p3DModel->getNumFaces(),
+					m_p3DModel->m_objetos[i].s_normalIndices,		// Num de normales
+					m_p3DModel->getNumNormals(),
+					m_p3DModel->m_objetos[i].s_UVindices,// Indices a UV coords
+					((m_p3DModel) ? (m_p3DModel->getNumFaces()) : 0)	// Num de UV coords
+				);*/
+				loaded = getOpenGLRenderer()->allocateGraphicsMemoryForObject( //No se pueden cargar dos objetos por separado, si se hace se cambia al ultimo objeto con las cordenadas movidas
+					m_p3DModel->getShaderProgramId(),
+					m_p3DModel->getGraphicsMemoryObjectId(),
+					m_p3DModel->getModelVertices(),
+					m_p3DModel->getNumVertices(),
+					m_p3DModel->getModelNormals(),
+					m_p3DModel->getNumNormals(),
+					m_p3DModel->getModelUVCoords(),
+					m_p3DModel->getNumUVCoords(),
+					m_p3DModel->m_objetos[i].s_vertexIndices,
+					m_p3DModel->getNumFaces(),
+					m_p3DModel->m_objetos[i].s_normalIndices,
+					((m_p3DModel) ? (m_p3DModel->getNumFaces()) : 0),
+					m_p3DModel->m_objetos[i].s_UVindices,
+					((m_p3DModel) ? (m_p3DModel->getNumFaces()) : 0)
+				);
+				//break;
+				if (!loaded)
+				{
+					unloadCurrent3DModel();
+				}
 			}
-			else
+		}
+		else
+		{
+
+			if (m_p3DModel->hasUVs() && m_p3DModel->hasTextures())
 			{
+				// Switch shaders to textured object ones
+				vertexShaderToLoad = VERTEX_SHADER_TEXTURED_3D_OBJECT;
+				fragmentShaderToLoad = FRAGMENT_SHADER_TEXTURED_3D_OBJECT;
+
+				unsigned int newTextureID = 0;
+
+				// LOAD TEXTURE AND ALSO CREATE TEXTURE OBJECT
+				if (loadTexture(m_p3DModel->getTextureFilename(), &newTextureID))
+				{
+					m_p3DModel->setTextureObjectId(newTextureID);
+				}
+				else
+				{
+					return false;
+				}
+			}
+
+			// TO-DO (IMPROVMENT): LOAD ALL POSSIBLE SHADERS FOR 3D OBJECT UP FRONT AND THEN JUST SWITCH THE ACTIVE ONE
+
+			// If resource files cannot be found, return
+			if (!CWideStringHelper::GetResourceFullPath(vertexShaderToLoad, wresourceFilenameVS, resourceFilenameVS) ||
+				!CWideStringHelper::GetResourceFullPath(fragmentShaderToLoad, wresourceFilenameFS, resourceFilenameFS))
+			{
+				cout << "ERROR: Unable to find one or more resources: " << endl;
+				cout << "  " << vertexShaderToLoad << endl;
+				cout << "  " << fragmentShaderToLoad << endl;
+
 				return false;
 			}
-		}
-
-		// TO-DO (IMPROVMENT): LOAD ALL POSSIBLE SHADERS FOR 3D OBJECT UP FRONT AND THEN JUST SWITCH THE ACTIVE ONE
-
-		// If resource files cannot be found, return
-		if (!CWideStringHelper::GetResourceFullPath(vertexShaderToLoad, wresourceFilenameVS, resourceFilenameVS) ||
-			!CWideStringHelper::GetResourceFullPath(fragmentShaderToLoad, wresourceFilenameFS, resourceFilenameFS))
-		{
-			cout << "ERROR: Unable to find one or more resources: " << endl;
-			cout << "  " << vertexShaderToLoad << endl;
-			cout << "  " << fragmentShaderToLoad << endl;
-
-			return false;
-		}
 		
-		// Create a shader program for this object
-		getOpenGLRenderer()->createShaderProgram(
-			&m_currentModelShaderId, 
-			resourceFilenameVS.c_str(), 
-			resourceFilenameFS.c_str());
+			// Create a shader program for this object
+			getOpenGLRenderer()->createShaderProgram(
+				&m_currentModelShaderId, 
+				resourceFilenameVS.c_str(), 
+				resourceFilenameFS.c_str());
 
-		// Save the shader program ID in the model as well
-		m_p3DModel->setShaderProgramId(m_currentModelShaderId);
+			// Save the shader program ID in the model as well
+			m_p3DModel->setShaderProgramId(m_currentModelShaderId);
 
-		// Allocate graphics memory for object
-		loaded = getOpenGLRenderer()->allocateGraphicsMemoryForObject(
-			m_p3DModel->getShaderProgramId(),
-			m_p3DModel->getGraphicsMemoryObjectId(),
-			m_p3DModel->getModelVertices(),
-			m_p3DModel->getNumVertices(),
-			m_p3DModel->getModelNormals(),
-			m_p3DModel->getNumNormals(),
-			m_p3DModel->getModelUVCoords(),
-			m_p3DModel->getNumUVCoords(),
-			m_p3DModel->getModelVertexIndices(),
-			m_p3DModel->getNumFaces(),
-			m_p3DModel->getModelNormalIndices(),
-			((m_p3DModel)?(m_p3DModel->getNumFaces()):0),
-			m_p3DModel->getModelUVCoordIndices(),
-			((m_p3DModel)?(m_p3DModel->getNumFaces()):0)
-		);
+			// Allocate graphics memory for object
+			loaded = getOpenGLRenderer()->allocateGraphicsMemoryForObject(
+				m_p3DModel->getShaderProgramId(),
+				m_p3DModel->getGraphicsMemoryObjectId(),
+				m_p3DModel->getModelVertices(),
+				m_p3DModel->getNumVertices(),
+				m_p3DModel->getModelNormals(),
+				m_p3DModel->getNumNormals(),
+				m_p3DModel->getModelUVCoords(),
+				m_p3DModel->getNumUVCoords(),
+				m_p3DModel->getModelVertexIndices(),
+				m_p3DModel->getNumFaces(),
+				m_p3DModel->getModelNormalIndices(),
+				((m_p3DModel)?(m_p3DModel->getNumFaces()):0),
+				m_p3DModel->getModelUVCoordIndices(),
+				((m_p3DModel)?(m_p3DModel->getNumFaces()):0)
+			);
+			if (!loaded)
+			{
+				unloadCurrent3DModel();
+			}
+		}
 
 		// If error ocurred, cleanup memory
-		if (!loaded)
-		{
-			unloadCurrent3DModel();
-		}
 	}
 
 	return loaded;
@@ -493,6 +611,7 @@ void CAppParcial2::unloadCurrent3DModel()
 {
 	if (m_p3DModel != NULL)
 	{
+
 		// Free up graphics memory
 		getOpenGLRenderer()->freeGraphicsMemoryForObject(
 			m_p3DModel->getShaderProgramId(),

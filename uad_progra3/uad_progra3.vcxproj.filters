@@ -120,6 +120,9 @@
     <ClInclude Include="Include\figuras_geometricas.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Include\C3DSergio_Model_Obj.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -183,6 +186,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\figuras_geometricas.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\C3DSergio_Model_Obj.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

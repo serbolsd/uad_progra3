@@ -76,6 +76,9 @@ public:
 	void createCubo();
 	
 	void createTorus();
+	
+	void hexagon();
+	void hexgrid();
 
 #define PI       3.14159265358979323846;
 

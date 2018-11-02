@@ -100,11 +100,13 @@ void Cgeomretria ::initialize()
 
 	if (m_shaderID > 0)
 	{
-		createPiramid();
+		//createPiramid();
 		//createDona();
-		createEsfera();
-		createCubo();
-		createTorus();
+		//createEsfera();
+		//createCubo();
+		//createTorus();
+		hexagon();
+		//hexgrid();
 	}
 }
 
@@ -121,7 +123,7 @@ void Cgeomretria ::run()
 		{
 			// Set initial clear screen color
 			getOpenGLRenderer()->setClearScreenColor(0.25f, 0.0f, 0.75f);
-
+			getOpenGLRenderer()->setCameraDistance(15.0f);
 			// Initialize window width/height in the renderer
 			getOpenGLRenderer()->setWindowWidth(getGameWindow()->getWidth());
 			getOpenGLRenderer()->setWindowHeight(getGameWindow()->getHeight());
@@ -159,7 +161,7 @@ void Cgeomretria ::update(double deltaTime)
 	// ----------------------------------------------------------------------------------------------------------------------------------------
 	// degrees = rotation speed * delta time 
 	// deltaTime is expressed in milliseconds, but our rotation speed is expressed in seconds (convert delta time from milliseconds to seconds)
-	degreesToRotate = m_rotationSpeed * (deltaTime / 1000.0);
+	//degreesToRotate = m_rotationSpeed * (deltaTime / 1000.0);
 	// accumulate rotation degrees
 	m_objectRotation += degreesToRotate;
 
@@ -295,28 +297,71 @@ void Cgeomretria::render()
 	{
 		// White 
 		// Colors are in the 0..1 range, if you want to use RGB, use (R/255, G/255, G/255)
-		float color[3] = { 115.0f, 8.0f, 165.0f };
 		unsigned int noTexture = 0;
+		float incrementoX = 1.76;
+		float incrementoY = 1.7 - .13;
+		float incrementoX2 = 1.76 / 2;
+		int filas = 10;
+		int columnas = 10;
+		float totalTamañoX = incrementoX * columnas;
+		float totalTamañoY = incrementoY * filas;
+		float inicialX = (totalTamañoX / 2) - totalTamañoX;
+		float inicialY = (totalTamañoY / 2) - totalTamañoY;
+		int count = 0;
+		float colorR = 7;
+		float colorG = 102;
+		float colorB = 204;
+		//colorR=((float)rand() / RAND_MAX) * (255 - 0) + 0;
+		//colorG=((float)rand() / RAND_MAX) * (255 - 0) + 0;
+		//colorB=((float)rand() / RAND_MAX) * (255 - 0) + 0;
+		float color[3];
+		float color1[3] = {colorR+100,colorG-50,colorB-100};
+		float color2[3] = {colorR,colorG,colorB};
+		
 
-
-		// convert total degrees rotated to radians;
 		double totalDegreesRotatedRadians = m_objectRotation * 3.1459 / 180.0;
+		for (float i = inicialY; i < totalTamañoY/2 -1 ; i+=incrementoY)
+		{
+			for (float j = inicialX; j < totalTamañoX/2 -1 ; j+=incrementoX)
+			{
+		
+				if ((count%2) != 0)
+				{
+					m_objectPosition.Y = i;
+					m_objectPosition.X = j+incrementoX2;
+					color[0] = color1[0];
+					color[1] = color1[1];
+					color[2] = color1[2];
+				}
+				else
+				{
+					m_objectPosition.Y = i;
+					m_objectPosition.X = j;
+					color[0] = color2[0];
+					color[1] = color2[1];
+					color[2] = color2[2];
+				}
+				MathHelper::Matrix4 modelMatrix = MathHelper::ModelMatrix((float)totalDegreesRotatedRadians, m_objectPosition);
+				if (m_geoVAOID > 0 && m_numFacesToRender)
+				{
+					getOpenGLRenderer()->renderObject(
+						&m_shaderID,
+						&m_geoVAOID,
+						&noTexture,
+						m_numFacesToRender,
+						color,
+						&modelMatrix,
+						COpenGLRenderer::EPRIMITIVE_MODE::TRIANGLES,
+						false
+					);
+				};
+			}
+			count++;
+		}
+		// convert total degrees rotated to radians;
 
 		// Get a matrix that has both the object rotation and translation
-		MathHelper::Matrix4 modelMatrix = MathHelper::ModelMatrix((float)totalDegreesRotatedRadians, m_objectPosition);
-		if (m_geoVAOID > 0 && m_numFacesToRender)
-		{
-			getOpenGLRenderer()->renderObject(
-				&m_shaderID,
-				&m_geoVAOID,
-				&noTexture,
-				m_numFacesToRender,
-				color,
-				&modelMatrix,
-				COpenGLRenderer::EPRIMITIVE_MODE::TRIANGLES,
-				false
-			);
-		};
+		
 	}
 }
 
@@ -1125,4 +1170,389 @@ void torusAcomodoTries(unsigned short *&vIndice, int **vertices, int nCarasHoriz
 		}
 
 	}
+}
+
+void Cgeomretria::hexagon()
+{
+	bool loaded = false;
+
+	float size = 1;
+	float anchoTotal = sqrt(3)* size;
+	float alturaTotal = 2 * size;
+	float anchoDesdeCentro = anchoTotal / 2;
+	float alturaDesdeCentro = alturaTotal / 2;
+	/*
+	float halfz = 1.0f;
+	float halfx = 1.0f;
+	float v1v3[3], v1v2[2], normal[3];*/
+
+	int numAristas = 6;
+	int nVertices = 7;
+	float anguloY = 360 / 6;
+	float z1 = 0.25;
+	float z2 = -0.25;
+	m_numFacesToRender = 6;
+
+	float *vdata = new float[nVertices * 3];
+
+	int **vertices = new int *[2];//para el registro del indice de los vertices
+	for (int i = 0; i < 6 + 2; i++)
+	{
+		vertices[i] = new int[6 + 2];
+	}
+	//para tener un numero de referencia del limite de los vertices
+	for (int i = 0; i < 2 + 1; i++)
+	{
+		for (int j = 0; j < 6 + 2; j++)
+		{
+			vertices[i][j] = -1;
+		}
+	}
+
+	float verticeX = 0.0f;
+	float verticeY = 0.0f;
+	float verticeZ = 0.0f;
+	int nV = 0;
+	int numVertice = 0;
+	int vertice = 0;
+	for (int j = 0; j < 1; j++)
+	{
+		verticeX = 0;
+		vdata[nV] = verticeX;
+		nV++;
+		verticeY = 0;
+		vdata[nV] = verticeY;
+		nV++;
+		if (j < 1)
+		{
+			verticeZ = z1;
+		}
+		else
+		{
+			verticeZ = z2;
+		}
+		vdata[nV] = verticeZ;
+		nV++;
+		vertices[j][vertice] = numVertice;
+		numVertice++;
+		vertice++;
+		for (int i = 0; i < 360; i += anguloY)
+		{
+			verticeX = size * sin(i / (180 / PI));
+			vdata[nV] = verticeX;
+			nV++;
+			verticeY = size * cos(i / (180 / PI));
+			vdata[nV] = verticeY;
+			nV++;
+			if (j < 1)
+			{
+				verticeZ = z1;
+			}
+			else
+			{
+				verticeZ = z2;
+			}
+			vdata[nV] = verticeZ;
+			nV++;
+
+			vertices[j][vertice] = numVertice;
+			numVertice++;
+			vertice++;
+		}
+		vertice = 0;
+	}
+
+	//son 18 por que cada triangulo tiene 3 vertices, y en una piramide hay 6 triangulos
+	int fila;
+	int columna;
+	int num = 0;
+	unsigned short vIndice[6 * 3];
+	for (int i = 0; i < 6 * 3; i++)
+	{
+		vIndice[i] = 0;
+	}
+	for (int i = 0; i < 1; i++)
+	{
+		for (int j = 1; j < 7; j++)
+		{
+			if (i==0)
+			{
+				if (vertices[i][j + 1] == -1)
+				{
+					vIndice[num] = unsigned short(vertices[i][0]);
+					num++;
+					vIndice[num] = unsigned short(vertices[i][1]);
+					num++;
+					vIndice[num] = unsigned short(vertices[i][j]);
+					num++;
+				}
+				else
+				{
+					vIndice[num] = unsigned short(vertices[i][0]);
+					num++;
+					vIndice[num] = unsigned short(vertices[i][j+1]);
+					num++;
+					vIndice[num] = unsigned short(vertices[i][j]);
+					num++;
+				}
+			}
+			/*else if(i==1)
+			{
+				if (vertices[i][j + 1] == -1)
+				{
+					vIndice[num] = unsigned short(vertices[i][0]);
+					num++;
+					vIndice[num] = unsigned short(vertices[i][j]);
+					num++;
+					vIndice[num] = unsigned short(vertices[i][1]);
+					num++;
+				}
+				else
+				{
+					vIndice[num] = unsigned short(vertices[i][0]);
+					num++;
+					vIndice[num] = unsigned short(vertices[i][j]);
+					num++;
+					vIndice[num] = unsigned short(vertices[i][j + 1]);
+					num++;
+				}
+			}*/
+		}
+	}
+
+
+	// la "n" es de normales
+	float nData[6 * 3];
+	for (int i = 0; i < 6*3; i++)
+	{
+		nData[i] = 0.0;
+	}
+
+	unsigned short nIndice[6*3];
+
+	int indiNum = 0;
+	for (int i = 0; i < 6*3; i++)
+	{
+		nIndice[i] = indiNum;
+		i++;
+		nIndice[i] = indiNum;
+		i++;
+		nIndice[i] = indiNum;
+		indiNum++;
+	}
+
+
+	loaded = getOpenGLRenderer()->allocateGraphicsMemoryForObject(
+		&m_shaderID,
+		&m_geoVAOID,
+		vdata,  // vertices
+		7,		// Nunmero de vertices del 0 al 5 por que son 6
+		nData,	// Normales
+		6,		// Numero de normales
+		vdata,	// UV coords
+		7,		// Num Uv coords
+		vIndice,// Indices a vertices
+		6,		// Num de tris
+		nIndice,// Indices a normales
+		6,		// Num de normales
+		vIndice,// Indices a UV coords
+		6		// Num de UV coords
+	);
+	//delete vdata;
+	//delete []vertices;
+}
+
+void Cgeomretria::hexgrid()
+{
+	//	GRID.createHex;
+	bool loaded;
+	m_numFacesToRender = 24;
+	int size = 1;
+	float width = sqrt(3) * size;
+	float height = 2 * size;
+	float centerWidth = width / 2;
+	float centerHeight = height / 2;
+
+
+
+	int numAristas = 6;
+	int numVertices = 7;
+	//int numFaces = (12 * 2) + 2;
+	float anguloY = 360 / 6;
+	float Z1 = 0.25;
+	float Z2 = -0.25;
+	//float PI = 3.14159245358979323846;
+	// ============================== SECTION
+	float *vdata = new float[numVertices * 3];
+
+	int **Vertex = new int *[3]; // Registro del indice de los vertices
+
+	for (int i = 0; i < 6 + 2; i++)
+	{
+		Vertex[i] = new int[6 + 2];
+	}
+	// Referencia del limite de los vertices
+	for (int i = 0; i < 2 + 1; i++)
+	{
+		for (int j = 0; j < 6 + 2; j++)
+		{
+			Vertex[i][j] = -1;
+		}
+	}
+	// ============================== SECTION
+	float Vertex_X = 0.0f;
+	float Vertex_Y = 0.0f;
+	float Vertex_Z = 0.0f;
+
+	int numVertice = 0;
+	int vertice = 0;
+	int nV = 0;
+
+	for (int j = 0; j < 1; j++)
+	{
+		Vertex_X = 0;
+		vdata[nV] = Vertex_X;
+		nV++;
+		Vertex_Y = 0;
+		vdata[nV] = Vertex_Y;
+		nV++;
+		if (j < 1)
+		{
+			Vertex_Z = Z1;
+		}
+		else
+		{
+			Vertex_Z = Z2;
+		}
+
+		vdata[nV] = Vertex_Z;
+		nV++;
+		Vertex[j][vertice] = numVertice;
+		numVertice++;
+		vertice++;
+		// ============================== SECTION
+		for (int i = 0; i < 360; i += anguloY)
+		{
+			Vertex_X = size * sin(i / (180 / PI));
+			vdata[nV] = Vertex_X;
+			nV++;
+			Vertex_Y = size * cos(i / (180 / PI));
+			vdata[nV] = Vertex_Y;
+			nV++;
+			if (j < 1)
+			{
+				Vertex_Z = Z1;
+			}
+			else
+			{
+				Vertex_Z = Z2;
+			}
+			vdata[nV] = Vertex_Z;
+			nV++;
+
+			Vertex[j][vertice] = numVertice;
+			numVertice++;
+			vertice++;
+
+		}
+		vertice = 0;
+	}
+
+	// Vertices = 6;
+	int fila, col;
+	int num = 0;
+	unsigned short vIndices[24 * 3];
+
+	for (int i = 0; i < 24 * 3; i++)
+	{
+		vIndices[i] = 0;
+	}
+
+	for (int i = 0; i < 2; i++)
+	{
+		for (int j = 1; j < 7; j++)
+		{
+			if (i == 0)
+			{
+				if (Vertex[i][j + 1] == -1)
+				{
+					vIndices[num] = unsigned short(Vertex[i][0]);
+					num++;
+					vIndices[num] = unsigned short(Vertex[i][1]);
+					num++;
+					vIndices[num] = unsigned short(Vertex[i][j]);
+					num++;
+				}
+				else
+				{
+					vIndices[num] = unsigned short(Vertex[i][0]);
+					num++;
+					vIndices[num] = unsigned short(Vertex[i][j + 1]);
+					num++;
+					vIndices[num] = unsigned short(Vertex[i][j]);
+					num++;
+				}
+
+			}
+			else if (i == 1)
+			{
+				if (Vertex[i][j + 1] == -1)
+				{
+					vIndices[num] = unsigned short(Vertex[i][0]);
+					num++;
+					vIndices[num] = unsigned short(Vertex[i][j]);
+					num++;
+					vIndices[num] = unsigned short(Vertex[i][1]);
+					num++;
+				}
+				else
+				{
+					vIndices[num] = unsigned short(Vertex[i][0]);
+					num++;
+					vIndices[num] = unsigned short(Vertex[i][j]);
+					num++;
+					vIndices[num] = unsigned short(Vertex[i][j + 1]);
+					num++;
+				}
+			}
+		}
+	}
+
+
+	float nData[24 * 3];
+	for (int i = 0; i < 24 * 3; i++)
+	{
+		nData[i] = 0.0;
+	}
+
+	int num1 = 0;
+	unsigned short nIndice[24 * 3];
+
+	for (int i = 0; i < 24 * 3; i++)
+	{
+		nIndice[i] = num1;
+		i++;
+		nIndice[i] = num1;
+		i++;
+		nIndice[i] = num1;
+		num1++;
+	}
+
+	loaded = getOpenGLRenderer()->allocateGraphicsMemoryForObject(
+		&m_shaderID,
+		&m_geoVAOID,
+		vdata,			// Vertices
+		14,				// Num Vertices
+		nData,			// normales
+		24,				// num normales
+		vdata,			// UV coords
+		14,				// num UV coords
+		vIndices,		// Indices a vertices
+		24,				// num tri
+		nIndice,		// Indices a normales
+		24,				// num indices a normales
+		vIndices,		// Indices a UV Coords
+		24);				// num indices a UV coords
+	if (!loaded)
+		m_geoVAOID = 0;
 }

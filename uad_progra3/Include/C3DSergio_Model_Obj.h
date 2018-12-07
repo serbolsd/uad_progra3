@@ -1,4 +1,4 @@
-#pragma once
+/*#pragma once
 #ifndef C3DMODEL_H_OBJ_SERGIO
 #define C3DMODEL_H_OBJ_SERGIO
 
@@ -6,6 +6,7 @@
 using namespace std;
 
 #include "C3DModel.h"
+#include"objecteLoader.h"
 
 class C3DSergio_Model_Obj : public C3DModel
 {
@@ -29,16 +30,16 @@ private:
 		std::string &materialFilename,
 		int i);
 
-	
+	void loadOBJDLL();
 
 protected:
 	void reset();														// Cleanup any allocated memory
 	void resetCurrents();
 	bool loadFromFile(const char * const filename);
-
+	
 public:
 	C3DSergio_Model_Obj();
 	~C3DSergio_Model_Obj();
 };
 
-#endif // !C3DMODEL_H_OBJ_SERGIO
+#endif // !C3DMODEL_H_OBJ_SERGIO*/

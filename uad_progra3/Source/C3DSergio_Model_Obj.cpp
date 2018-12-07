@@ -1,4 +1,4 @@
-#include "../stdafx.h"
+/*#include "../stdafx.h"
 
 #include <iostream>
 #include <fstream>
@@ -12,7 +12,7 @@ using namespace std;
 #include "../Include/C3DSergio_Model_Obj.h"
 
 /*
-*/
+
 C3DSergio_Model_Obj::C3DSergio_Model_Obj() :
 	C3DModel(),
 	m_currentVertex(0),
@@ -24,17 +24,22 @@ C3DSergio_Model_Obj::C3DSergio_Model_Obj() :
 }
 
 /*
-*/
+
 C3DSergio_Model_Obj::~C3DSergio_Model_Obj()
 {
 	cout << "Destructor: C3DSergio_Model_Obj()" << endl;
 	resetobjs();
 	m_objetos.clear();
 }
-
 /*
-*/
-void C3DSergio_Model_Obj::reset()
+
+
+void C3DSergio_Model_Obj::loadOBJDLL()
+{
+	//loaderOBJObject(m_vertexIndices,m_verticesRaw,m_);
+}
+
+void C3DSergio_Model_Obj::reset() 
 {
 	C3DModel::resetobjs();
 	C3DModel::reset();
@@ -56,7 +61,7 @@ void C3DSergio_Model_Obj::resetCurrents()
 	m_obj.s_currentFace = 0;
 }
 /*
-*/
+
 bool C3DSergio_Model_Obj::loadFromFile(const char * const filename)
 {
 	bool readFileOk = false;
@@ -220,7 +225,7 @@ bool C3DSergio_Model_Obj::loadFromFile(const char * const filename)
 }
 
 /*
-*/
+
 bool C3DSergio_Model_Obj::readObjFile(const char * filename, bool countOnly, bool &finishRead,int &timeRead)
 {
 	ifstream infile;
@@ -481,7 +486,7 @@ bool C3DSergio_Model_Obj::readObjFileMaya(const char * filename, bool countOnly,
 *
 * TO-DO...
 * Also, this reads files with triangles, not quads. This is also a TO-DO...
-*/
+
 // no lo utilizo
 bool C3DSergio_Model_Obj::parseObjLine(std::string line, bool countOnly, int lineNumber)
 {
@@ -760,7 +765,7 @@ bool C3DSergio_Model_Obj::parseObjLine(std::string line, bool countOnly, int lin
 }//no lo utilizo
 
 /*
-*/
+
 
 //no lo utilizo
 bool C3DSergio_Model_Obj::readMtllib(std::string mtlLibFilename, std::string &materialName, std::string &materialFilename)
@@ -902,4 +907,4 @@ bool C3DSergio_Model_Obj::readMtllibMaya(std::string mtlLibFilename, std::string
 	infile.close();
 
 	return readTextureName;
-}
+}*/

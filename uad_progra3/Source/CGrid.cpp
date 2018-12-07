@@ -180,11 +180,9 @@ void CGrid::render()
 		// White 
 		// Colors are in the 0..1 range, if you want to use RGB, use (R/255, G/255, G/255)
 		unsigned int noTexture = 0;
-		float incrementoX = 1.76;
-		float incrementoY = 1.7 - .13;
-		float incrementoX2 = 1.76 / 2;
-		int filas = 10;
-		int columnas = 10;
+		
+		//int filas = 10;
+		//int columnas = 10;
 		float totalTamañoX = incrementoX * columnas;
 		float totalTamañoY = incrementoY * filas;
 		float inicialX = (totalTamañoX / 2) - totalTamañoX;
@@ -297,5 +295,30 @@ void CGrid::createSavePositions()
 	for (int i = 0; i < filas*columnas; i++)
 	{
 		m_cellPosition[i] = new float[3];
+	}
+}
+
+void CGrid::SavePositions(vector<CVector3> &vec)
+{
+	int linea = 0;
+	for (float i = inicialY; i < (totalTamañoY/2)-1; i+=incrementoY)
+	{
+		for (float j = inicialX; j < (totalTamañoX / 2) - 1; j += incrementoX)
+		{
+			if (count%2 != 0)
+			{
+				m_vecForSavePosition.Y = i;
+				m_vecForSavePosition.X = (j+incrementoX2);
+			}
+			else
+			{
+				m_vecForSavePosition.Y = i;
+				m_vecForSavePosition.X = (j);
+
+			}
+			CVector3 forsave = m_vecForSavePosition;
+			vec.push_back(forsave);
+		}
+		linea++;
 	}
 }

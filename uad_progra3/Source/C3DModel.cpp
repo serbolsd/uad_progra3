@@ -146,8 +146,8 @@ C3DModel* C3DModel::load(const char * const filename, bool &isObj)
 		if (!fileExtension.compare("obj"))
 		{
 			cout << "Loading OBJ model..." << endl;
-			//newModel = new C3DModel_Obj();
-			newModel = new C3DSergio_Model_Obj();
+			newModel = new C3DModel_Obj();
+			//newModel = new C3DSergio_Model_Obj();
 			newModel->loadFromFile(filename);
 			isObj = true;
 		}

@@ -18,11 +18,15 @@ public:
 	void update(double deltatime);
 	void render();
 	bool initializeMenu() { return false; }
-	int filas = 10;
-	int columnas = 10;
+	int filas = 100;
+	int columnas = 100;
 	float **m_cellPosition;
 	void createSavePositions();
-	
+	float incrementoX = 1.76;
+	float incrementoY = 1.7 - .13;
+	float incrementoX2 = 1.76 / 2;
+
+	void SavePositions(vector<CVector3> &vec);
 
 private:
 //	CGridCell * m_pGridCell;
@@ -34,9 +38,9 @@ private:
 	// White 
 	// Colors are in the 0..1 range, if you want to use RGB, use (R/255, G/255, G/255)
 	unsigned int noTexture = 0;
-	float incrementoX = 1.76;
+	/*float incrementoX = 1.76;
 	float incrementoY = 1.7 - .13;
-	float incrementoX2 = 1.76 / 2;
+	float incrementoX2 = 1.76 / 2;*/
 	
 	float totalTamañoX = incrementoX * columnas;
 	float totalTamañoY = incrementoY * filas;
@@ -54,6 +58,8 @@ private:
 
 	// Current object position
 	CVector3 m_objectPosition;
+	CVector3 m_vecForSavePosition;
+	
 
 	//  Object rotation speed (degrees per second)
 	double m_rotationSpeed;
